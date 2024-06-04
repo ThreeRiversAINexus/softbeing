@@ -1,0 +1,12 @@
+langchain
+langchain-community
+langchain-core
+langchain-experimental
+langchain-cli
+langchain-openai
+openai
+pytz
+python-dotenv[cli]
+elevenlabs
+emoji
+discord.py[voice]
