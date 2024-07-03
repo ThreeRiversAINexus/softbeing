@@ -39,7 +39,7 @@ class SoftbeingAgent():
         self.beliefs.env_file = configuration['env_file']
 
         if configuration['discord_configuration']:
-            self.beliefs.llm_configuration = LLMConfiguration()
+            self.beliefs.llm_configuration = LLMConfiguration(config=configuration['llm_configuration'])
             self.beliefs.discord_configuration = DiscordConfiguration(config=configuration['discord_configuration'])
             self.beliefs.discord_knowledge = DiscordKnowledge(config=self.beliefs.discord_configuration, llm=self.beliefs.llm_configuration)
 

@@ -16,7 +16,14 @@ class MonitoringCog(commands.Cog):
         NOTICE_INTERVAL = self.body.beliefs.discord_configuration.notice_interval
         self.time = TimeHelp()
         self.check_messages.start()
+        self.locks = {}
         log.info("MonitoringCog")
+    
+    @commands.command()
+    async def notice(self, ctx):
+        # This is where we'll implement invoking chat directly
+        # especially useful in DMs
+        self.body.client.dispatch("notice_activity", ctx.message.channel, [ctx.message])
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -68,6 +75,8 @@ class MonitoringCog(commands.Cog):
             monitored_channels = [channel for channel in channels if channel.name in config.monitored_guilds[guild_name]]
             # print(monitored_channels)
             for channel in monitored_channels:
+                if self.locks.get(guild_name, {}).get(channel.name, 0) == 1:
+                    continue
                 time_threshold = self.time.minutes_ago(history_window)
                 messages_with_notice_role = 0
                 messages = []
@@ -93,14 +102,25 @@ class MonitoringCog(commands.Cog):
                     # await channel.send(response)
 
     @commands.Cog.listener()
-    async def on_waiting_to_generate(self):
-        log.info("Stopping check_messages")
+    async def on_waiting_to_generate(self, channel):
+        log.info("waiting_to_generate")
+        if isinstance(channel, discord.TextChannel):
+            self.locks.setdefault(channel.guild.name, {})
+            self.locks[channel.guild.name][channel.name] = 1
+        # elif isinstance(channel, discord.DMChannel):
+        #     self.locks["DM"][channel.recipient.name] = 1
+        # Add a lock for just the channel
         # self.check_messages.cancel()
 
     @commands.Cog.listener()
-    async def on_sent_message(self):
+    async def on_sent_message(self, channel):
         await asyncio.sleep(60)
-        log.info("Starting check_messages")
+        log.info("sent_message")
+        if isinstance(channel, discord.TextChannel):
+            self.locks.setdefault(channel.guild.name, {})
+            self.locks[channel.guild.name][channel.name] = 0
+
+        # Release the lock on the channel
         # self.check_messages.start()
 
     @check_messages.before_loop
