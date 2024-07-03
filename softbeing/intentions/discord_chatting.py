@@ -30,7 +30,7 @@ class DiscordChatting():
 
     async def discord_to_langchain_messages(self, discord_messages):
         ai_template = AIMessagePromptTemplate.from_template(template="{author}: {content}")
-        human_template = HumanMessagePromptTemplate.from_template(template="Chats: {content}")
+        human_template = HumanMessagePromptTemplate.from_template(template="{content}")
         langchain_messages = []
         chat_history = ""
         combined_content = ""  # To combine content of the same type
@@ -123,7 +123,7 @@ class DiscordChatting():
         prompt_messages += [system_message]
         # Get the last third of the langchain_messages
         # chat_history, langchain_messages = self.get_discord_message_context()
-        langchain_messages = langchain_messages[-int(len(langchain_messages)/3):]
+        langchain_messages = langchain_messages[-int(len(langchain_messages)-5):]
         prompt_messages.extend(langchain_messages)
         # prompt_messages += [special_system_message]
 
@@ -139,14 +139,15 @@ class DiscordChatting():
             temperature=self.body.beliefs.llm_configuration.temperature,
             timeout=self.body.beliefs.llm_configuration.text_generation_timeout,
             max_tokens=self.body.beliefs.llm_configuration.max_tokens,
+            frequency_penalty=self.body.beliefs.llm_configuration.frequency_penalty,
+            presence_penalty=self.body.beliefs.llm_configuration.presence_penalty,
             streaming=True,
+            stop=["<|end_of_text|>"],
+            # model_kwargs={"stop": ["<|user|>"]}
         )
 
-        async with self.body.locks['saving_lock']:
-            self.current_input = prompt.format()
-
         output_parser = StrOutputParser()
-        chain = prompt | model.bind(stop=["\n"]) | output_parser
+        chain = prompt | model | output_parser
         log.info("Prompt length: " + str(self.string_help.calculate_tokens(prompt.format())))
         log.info(prompt.format())
         output = ""
@@ -173,9 +174,6 @@ class DiscordChatting():
         if output.startswith(name):
             output = re.sub(f"\'?{name}\'?:", "", output)
 
-        async with self.body.locks['saving_lock']:
-            self.current_output = output
-        
         return output
 
     async def send_voice_message(self, channel, message):
@@ -205,7 +203,7 @@ class DiscordChatting():
                     await channel.send(output)
             except Exception as e:
                 traceback.print_exc()
-        self.body.client.dispatch("sent_message")
+        self.body.client.dispatch("sent_message", channel)
         if output and output != "":
             try:
                 if self.body.beliefs.discord_configuration.enable_elevenlabs == 'True':

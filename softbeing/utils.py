@@ -81,7 +81,7 @@ class LangchainHelp():
         from softbeing.utils import AsyncHelp
         log = logging.getLogger(__name__)
         serialized_messages = []
-        log.debug(pprint.pformat(messages[0].__dict__))
+        # log.debug(pprint.pformat(messages[0].__dict__))
         async for message in AsyncHelp.async_generator_from_list(messages):
             serialized_message = {
                 'type': message.type,  # Assuming author is already a simple string

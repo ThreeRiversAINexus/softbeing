@@ -1,7 +1,8 @@
 from softbeing.intentions.discord_chatting import DiscordChatting
-from softbeing.utils import TimeHelp, LangchainHelp
+from softbeing.utils import TimeHelp, LangchainHelp, AsyncHelp
 
 from discord.ext import commands
+import discord
 import asyncio
 import logging
 import json 
@@ -16,14 +17,22 @@ class ChattingCog(commands.Cog):
         self.current_input = ""
         self.current_memory = ""
         self.intend_to_chat = DiscordChatting(body)
-
+    
     @commands.command()
     async def save(self, ctx):
         name = self.body.beliefs.personality.name
         now = self.time.file_postfix()
-        raw_history, last_messages = await self.intend_to_chat.discord_to_langchain_messages(ctx.channel.history(limit=200))
+        discord_messages = await self.body.beliefs.discord_knowledge.get_discord_message_context(ctx.message)
+        raw_history, last_messages = await self.intend_to_chat.discord_to_langchain_messages(AsyncHelp.async_generator_from_list(discord_messages))
+
+        from pprint import pprint
+        pprint(last_messages)
+        pprint(discord_messages)
 
         serialized_messages = await LangchainHelp.serialize_messages(last_messages)
+
+        prompt_template = await self.intend_to_chat.create_prompt_from_messages(discord_messages)
+        system_prompt = prompt_template.format()
 
         filename = f"{name}-{now}.json"
         data_to_save = {
@@ -31,11 +40,13 @@ class ChattingCog(commands.Cog):
                 'author': name,
                 'timestamp': now
             },
-            'data': serialized_messages
+            'data': {
+                'messages': serialized_messages,
+                'system_prompt': system_prompt
+            }
         }
-        async with self.body.locks['saving_lock']:
-            with open(filename, 'w', encoding='utf-8') as file:
-                json.dump(data_to_save, file, ensure_ascii=False, indent=4)
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(data_to_save, file, ensure_ascii=False, indent=4)
 
     @commands.command()
     async def reload(self, ctx):
@@ -49,7 +60,14 @@ class ChattingCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_notice_activity(self, channel, messages):
-        log.info(f"Activity noticed in {channel.name}")
+        channel_name = "unknown"
+        if isinstance(channel, discord.DMChannel):
+            channel_name = channel.id
+        
+        if isinstance(channel, discord.TextChannel):
+            channel_name = channel.name
+
+        log.info(f"Activity noticed in {channel_name}")
 
         # Improved logic would go here
         if self.notice_cooldown > 0:
@@ -57,7 +75,7 @@ class ChattingCog(commands.Cog):
             self.notice_cooldown -= 1
             return
 
-        log.info(f"Notice activity in {channel.name}")
+        log.info(f"Notice activity in {channel_name}")
         first_message = messages[-1]
         context_messages = await self.body.beliefs.discord_knowledge.get_discord_message_context(first_message)
         log.debug("A")
@@ -65,7 +83,7 @@ class ChattingCog(commands.Cog):
         log.debug("B")
         asyncio.create_task(self.intend_to_chat.invoke_chat_channel(prompt_task, channel))
         log.debug("C")
-        self.body.client.dispatch("waiting_to_generate")
+        self.body.client.dispatch("waiting_to_generate", channel)
         log.debug("D")
 
         self.notice_cooldown = self.body.beliefs.discord_configuration.notice_cooldown

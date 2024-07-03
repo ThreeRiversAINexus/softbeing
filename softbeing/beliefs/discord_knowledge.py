@@ -41,6 +41,9 @@ class DiscordKnowledge():
             model=self.llm.model_name,
             openai_api_key=self.llm.api_key,
             openai_api_base=self.llm.api_base,
+            frequency_penalty=self.llm.frequency_penalty,
+            presence_penalty=self.llm.presence_penalty,
+            model_kwargs={"stop": ["<|end_of_text|>"]}
         )
         summarization_template = PromptTemplate.from_template("""
 ##### Discord Users (Roles) #####
