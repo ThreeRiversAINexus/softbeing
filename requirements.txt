@@ -10,3 +10,4 @@ python-dotenv[cli]
 elevenlabs
 emoji
 discord.py[voice]
+langgraph
