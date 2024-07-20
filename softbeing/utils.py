@@ -89,4 +89,17 @@ class LangchainHelp():
             }
             serialized_messages.append(serialized_message)
         return serialized_messages
+
+import json
+class ConfigLoader():
+    def __init__(self, config_file):
+        self.config_file = config_file
+        if not self.config_file:
+            raise ValueError("No config file provided")
+        
+    def load_config(self):
+        # Actually need to go through and redo the beliefs
+        with open(self.config_file) as f:
+            configuration = json.load(f)
+        return configuration
     
