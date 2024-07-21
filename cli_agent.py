@@ -41,7 +41,8 @@ class SoftbeingBasicCLIAgent:
         while True:
             message = input("User: ")
             chat_history.add_user_message(message)
-            response = chain.invoke({"personality": self.identity.personality, "messages": chat_history.messages})
+            chain_args = {"personality": self.identity.personality, "messages": chat_history.messages}
+            response = chain.invoke(chain_args)
             chat_history.add_ai_message(response.content)
             print(f"{self.identity.name}: {response.content}")
 
