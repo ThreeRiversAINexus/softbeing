@@ -17,7 +17,7 @@ class LLMConfiguration:
         self.max_tokens = config["max_tokens"]
         self.text_generation_timeout = config["text_generation_timeout"]
 
-    def chat_model(self):
+    def chat_model(self, streaming=True):
         model = ChatOpenAI(
             model=self.model_name,
             openai_api_key=self.api_key,
@@ -28,8 +28,7 @@ class LLMConfiguration:
             max_tokens=self.max_tokens,
             frequency_penalty=self.frequency_penalty,
             presence_penalty=self.presence_penalty,
-            streaming=True,
-            stop=["<|end_of_text|>"],
-            # model_kwargs={"stop": ["<|user|>"]}
+            streaming=streaming,
+            # stop=["<|end_of_text|>"]
         )
         return model
