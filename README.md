@@ -86,7 +86,11 @@ Copy the example configuration JSON and edit it. Here are the most important val
 }
 ```
 
-The most important to change will be "name", "monitored_guilds", "notice_roles" and any log files. For the most part you can leave llm_configuration alone. This is also where you'd configure the bot's ElevenLabs voice if you choose to use it.
+The most important to change will be "name", "monitored_guilds", "notice_roles", "focus_+roles" and any log files. For the most part you can leave "llm_configuration" alone. This is also where you'd configure the bot's ElevenLabs voice if you choose to use it.
+
+monitored_guilds uses the name of the server and the list inside of it is the list of channels that the softbeing will monitor.
+
+notice_roles (really, just 1 role) is the name of the role that users will have in Discord 
 
 ## Personality File
 
@@ -94,7 +98,7 @@ This is rather freeform and where you define the personality of the character th
 
 ## Docker build.sh and run.sh
 
-In order to launch this, you'll want to build a Docker container. You can test the Docker container with run.sh.
+In order to launch this, you'll want to build a Docker container, you can use build.sh to create a devel container. You can test this devel Docker container with run.sh.
 
 ## Building for production
 
@@ -117,12 +121,26 @@ docker build -t softbeing:devel .
 
 Comment out the "devel" line and remove the '#' in front of the "latest" line. Then run ./build.sh. If all goes well, you'll build a Docker container named softbeing:latest.
 
+You can now push this up to a docker registry and pull it down into a production environment. Use volume mounts for the configs and logs, and you're ready to go.
+
 ## launch.pl
 
+This helper script is intended for if you have many different bots that you want to launch all at once. You would add the list of folder names
+that represent your bot to the `@bots` list.
 
+```
+my @bots = (
+    "anybot"
+    "your_bot_here"
+);
+```
+
+There would be a corresponding folder like 'devel' with a "your_bot_here" folder and matching dirs for configs, logs and personality. launch.pl expects this and makes them available to the container via volume mounts.
 
 # Known Issues
 
 Stop token isn't configurable
 
 softbeing_agent.log contradicts config json
+
+$notice can be replaced with actual Discord / commands
