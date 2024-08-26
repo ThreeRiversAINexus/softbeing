@@ -96,11 +96,17 @@ The most important to change will be "name", "monitored_guilds", "notice_roles",
 
 monitored_guilds uses the name of the server and the list inside of it is the list of channels that the softbeing will monitor.
 
-notice_roles (really, just 1 role) is the name of the role that users will have in Discord 
+notice_roles (really, just 1 role) is the name of the role that users will have in Discord.
+
+focus_roles are any roles that Discord users may have that the bot should include in their description of the user, as additional information about them.
 
 ## Personality File
 
 This is rather freeform and where you define the personality of the character that you want the 'softbeing' to embody.
+
+## CLI Agent
+
+If you don't want the Discord integration, you can just talk to the personality and LLM configuration with the `cli_agent.py` script. This way you have a simple chat 1 on 1 with it.
 
 ## Docker build.sh and run.sh
 
