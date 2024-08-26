@@ -9,7 +9,7 @@ Currently there's no database, we're using the Discord chat log as its own autho
 
 # Demo
 
-[Example Chat](docs/images/demo.png)
+![Example Chat](docs/images/demo.png)
 
 # Setup
 
@@ -36,7 +36,13 @@ ENABLE_ELEVENLABS=False
 
 ### Discord bot token
 
-This bot requires a lot of access, it needs to be able to read and manage chats.
+This bot requires a lot of access, it needs to be able to read and manage chats. You'll click the "Reset token" to get the actual token and paste that into the .env file.
+
+### Permissions and adding the Discord bot
+
+![Go to the OAuth2 page and set the permissions up like this](docs/images/oauth2_bot_permissions.png)
+
+You will then take the OAuth2 link and add your bot. However, without configuring the JSON file with the Discord Guild and channel to monitor, it won't reply without the special "notice" command or "$notice" in this case.
 
 ### OpenAI Compatible API
 
